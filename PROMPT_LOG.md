@@ -119,3 +119,19 @@ Razón backend: Supabase cubre OAuth Google + DB + realtime sin servidor propio.
 **Generó:** antes de tocar código pregunté 3 cosas (a dónde redirigió el login bueno, si hiciste sign out antes, qué hay en el allow-list de Supabase) — no quise parchear a ciegas un error de Auth sin diagnóstico.
 **Cambié:** nada — no era bug. Habías matado el proceso `flutter run` sin darte cuenta a mitad de la prueba; al reintentar limpio, login + reserva de gig + aparición en My Bookings funcionaron.
 **Por qué:** confirma en real: booking flow completo (INSERT `bookings` + UPDATE status + refetch) funciona end-to-end con sesión real de driver.
+
+---
+
+## [05:33] — Deploy Driver App (Flutter web) a Vercel
+**Pedí:** desplegar `/mobile` a Vercel con CLI, usando el `vercel.json` que propusiste (clona Flutter stable en el build, `flutter pub get` + `flutter build web --release`, output `build/web`, sin install command). Pedido explícito: documentar los pasos seguidos.
+
+**Pasos seguidos:**
+1. Creé `mobile/vercel.json` con exactamente la config que diste.
+2. `vercel link --yes --scope badi21s-projects` dentro de `/mobile` — nuevo proyecto Vercel `badi21s-projects/mobile` (separado del proyecto `web`), añadió `.vercel` a `mobile/.gitignore` solo.
+3. `vercel --prod --yes` — subida (~135MB, incluye todo el repo Flutter local salvo lo gitignoreado), build remoto: clona `flutter/flutter` stable depth 1 en `/tmp/flutter`, resuelve deps, compila a JS/wasm-dry-run, `flutter build web --release`. ~3 min total.
+4. Verifiqué con `curl` (200 en `/`) y en Chrome real: LoginScreen renderiza igual que en local, sin errores de consola.
+
+**Cambié:** nada de tu config — la usé literal.
+**Por qué:** no probé login/booking en este dominio de producción — necesitaría añadir esta URL nueva al allow-list de Supabase (igual que con la web dispatcher) antes de que el OAuth funcione ahí. Pendiente que lo hagas si vas a usar esta URL para pruebas reales.
+
+**URL producción Driver App:** https://mobile-ten-khaki.vercel.app
