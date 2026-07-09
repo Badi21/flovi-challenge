@@ -95,3 +95,11 @@ Razón backend: Supabase cubre OAuth Google + DB + realtime sin servidor propio.
 **URL producción:** https://web-six-nu-yy1480hzgt.vercel.app
 
 **Pendiente (no lo puedo hacer yo):** añadir esa URL a la lista de "Redirect URLs" en Supabase Dashboard → Authentication → URL Configuration. Sin eso, Supabase puede rechazar el `redirectTo` en producción aunque local funcione (localhost suele estar ya en la lista por defecto).
+
+---
+
+## [05:05] — Scaffold Driver App (Flutter, /mobile)
+**Pedí:** `flutter create mobile --org io.flovi --project-name flovi_driver`, `supabase_flutter ^2.0.0`, init Supabase en `main.dart` con url+anonKey dados, redirect LoginScreen/GigsScreen según sesión, `LoginScreen` (centrado, "Flovi Driver" + subtítulo, botón Google con `redirectTo: 'https://web-six-nu-yy1480hzgt.vercel.app/auth/callback'`, error en snackbar), `GigsScreen` placeholder, y que `flutter run -d chrome` funcione.
+**Generó:** antes de tocar código, marqué que ese `redirectTo` apunta al dominio de la web dispatcher, no a la Driver App — con eso, tras loguear en local (`flutter run -d chrome`, corre en localhost:PUERTO), Google devuelve al usuario a producción del dispatcher en vez de a la Driver App local, y de paso `/auth/callback` no existe en el router Vue. Preguntado, elegiste `redirectTo` dinámico (`Uri.base.origin`, solo en web vía `kIsWeb`) — funciona en local y en el dominio real cuando se despliegue, sin tocar código después.
+**Cambié:** `anonKey` → `publishableKey` en `Supabase.initialize` — `flutter analyze` marcó `anonKey` deprecado en `supabase_flutter` 2.15 (mismo naming "publishable key" que ya usa el proyecto). Reescribí `test/widget_test.dart` — el test template por defecto (contador +1) fallaba contra el nuevo `main.dart`; ahora verifica que `LoginScreen` muestra título/subtítulo/botón.
+**Por qué:** `flutter analyze` limpio, `flutter test` pasa, `flutter build web` limpio, y arranqué `flutter run -d chrome` real — confirmado en Chrome (screenshot): Supabase inicializa, sin sesión muestra LoginScreen con el diseño pedido.
