@@ -1,0 +1,21 @@
+# Vue3 / Node
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Flutter/Dart
+**/build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+*.iml
+.idea/
+
+# IDE
+.vscode/
