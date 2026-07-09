@@ -83,3 +83,15 @@ Razón backend: Supabase cubre OAuth Google + DB + realtime sin servidor propio.
 **Generó:** nada de código — registro el resultado.
 **Cambié:** nada.
 **Por qué:** confirma INSERT con `dispatcher_id = user.id`, status `available` por defecto, y refetch vía canal realtime mostrando la tarjeta nueva sin recargar página.
+
+---
+
+## [04:50] — Deploy a producción (Vercel)
+**Pedí:** subir a producción con Vercel CLI y devolver URL. Usar `main` como rama de producción — merge de `dev` primero, seguir luego en `dev`.
+**Generó:** merge fast-forward `dev` → `main` (sin commits propios en `main`, historial lineal intacto) + push. `vercel link` al proyecto (`badi21s-projects/web`), env vars de producción `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` vía `vercel env add`, `vercel --prod`.
+**Cambié:** primer deploy dio 404 en `/login` y `/dashboard` (solo `/` servía) — Vercel static hosting sin SPA fallback rompe `vue-router` en modo history. Añadí `web/vercel.json` con rewrite catch-all a `index.html` y redeploy.
+**Por qué:** verifiqué las 3 rutas con `curl` (200 en `/`, `/login`, `/dashboard`) antes de dar la URL por buena — sin el rewrite, el `redirectTo: '/dashboard'` del login con Google hubiera devuelto 404 en producción.
+
+**URL producción:** https://web-six-nu-yy1480hzgt.vercel.app
+
+**Pendiente (no lo puedo hacer yo):** añadir esa URL a la lista de "Redirect URLs" en Supabase Dashboard → Authentication → URL Configuration. Sin eso, Supabase puede rechazar el `redirectTo` en producción aunque local funcione (localhost suele estar ya en la lista por defecto).
