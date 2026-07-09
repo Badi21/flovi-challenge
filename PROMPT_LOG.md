@@ -95,3 +95,43 @@ Razón backend: Supabase cubre OAuth Google + DB + realtime sin servidor propio.
 **URL producción:** https://web-six-nu-yy1480hzgt.vercel.app
 
 **Pendiente (no lo puedo hacer yo):** añadir esa URL a la lista de "Redirect URLs" en Supabase Dashboard → Authentication → URL Configuration. Sin eso, Supabase puede rechazar el `redirectTo` en producción aunque local funcione (localhost suele estar ya en la lista por defecto).
+
+---
+
+## [05:05] — Scaffold Driver App (Flutter, /mobile)
+**Pedí:** `flutter create mobile --org io.flovi --project-name flovi_driver`, `supabase_flutter ^2.0.0`, init Supabase en `main.dart` con url+anonKey dados, redirect LoginScreen/GigsScreen según sesión, `LoginScreen` (centrado, "Flovi Driver" + subtítulo, botón Google con `redirectTo: 'https://web-six-nu-yy1480hzgt.vercel.app/auth/callback'`, error en snackbar), `GigsScreen` placeholder, y que `flutter run -d chrome` funcione.
+**Generó:** antes de tocar código, marqué que ese `redirectTo` apunta al dominio de la web dispatcher, no a la Driver App — con eso, tras loguear en local (`flutter run -d chrome`, corre en localhost:PUERTO), Google devuelve al usuario a producción del dispatcher en vez de a la Driver App local, y de paso `/auth/callback` no existe en el router Vue. Preguntado, elegiste `redirectTo` dinámico (`Uri.base.origin`, solo en web vía `kIsWeb`) — funciona en local y en el dominio real cuando se despliegue, sin tocar código después.
+**Cambié:** `anonKey` → `publishableKey` en `Supabase.initialize` — `flutter analyze` marcó `anonKey` deprecado en `supabase_flutter` 2.15 (mismo naming "publishable key" que ya usa el proyecto). Reescribí `test/widget_test.dart` — el test template por defecto (contador +1) fallaba contra el nuevo `main.dart`; ahora verifica que `LoginScreen` muestra título/subtítulo/botón.
+**Por qué:** `flutter analyze` limpio, `flutter test` pasa, `flutter build web` limpio, y arranqué `flutter run -d chrome` real — confirmado en Chrome (screenshot): Supabase inicializa, sin sesión muestra LoginScreen con el diseño pedido.
+
+---
+
+## [05:12] — GigsScreen completo (Available Gigs / My Bookings)
+**Pedí:** reemplazar el placeholder — AppBar con Sign Out, tabs "Available Gigs"/"My Bookings", tarjetas con Book, INSERT en `bookings` + UPDATE `relocation_requests.status='booked'` al reservar, SnackBar "Gig booked!", realtime en `relocation_requests` pa refrescar available gigs. Sugeriste StatefulWidget+setState o Riverpod, lo más limpio/simple.
+**Generó:** elegí StatefulWidget + `setState` — Riverpod no está instalado y añadirlo solo pa dos listas locales sería una dependencia nueva sin necesidad real (regla: no dependencia nueva si unas líneas bastan). `TabBar`/`TabBarView` con `TabController` en vez de "botón en AppBar" — la spec daba las dos opciones como válidas, tabs dan mejor UX nativa Flutter. Card compartida `_RequestCard` entre ambos tabs (con `onBook` opcional — nulo en My Bookings, así no duplico el layout de tarjeta). Modelos nuevos `RelocationRequest` y `Booking` (`Booking` incluye el `RelocationRequest` anidado del JOIN `bookings.select('id, request_id, relocation_requests(*)')`).
+**Cambié:** nada del pedido explícito — Sign Out no hace `Navigator.push`, solo llama `signOut()`; el `AuthGate` en `main.dart` (stream de `onAuthStateChange`) ya reacciona solo y muestra LoginScreen. My Bookings no lleva realtime propio — la spec solo lo pide para available gigs ("carga desde Supabase al montar" es literal ahí), añadir sync en vivo ahí sería una feature no pedida.
+**Por qué:** `flutter analyze` y `flutter build web` limpios, `flutter test` sigue pasando. El flujo de booking real (con sesión + datos reales en Supabase) no lo puedo probar yo sin loguearme como driver — igual que con el Dashboard, queda pendiente que lo verifiques tú.
+
+---
+
+## [05:25] — Verificación manual: booking real + falso positivo de error
+**Pedí:** (reporte) — viste `flow_state_already_used` en `localhost:3000` al probar login con una segunda cuenta Google.
+**Generó:** antes de tocar código pregunté 3 cosas (a dónde redirigió el login bueno, si hiciste sign out antes, qué hay en el allow-list de Supabase) — no quise parchear a ciegas un error de Auth sin diagnóstico.
+**Cambié:** nada — no era bug. Habías matado el proceso `flutter run` sin darte cuenta a mitad de la prueba; al reintentar limpio, login + reserva de gig + aparición en My Bookings funcionaron.
+**Por qué:** confirma en real: booking flow completo (INSERT `bookings` + UPDATE status + refetch) funciona end-to-end con sesión real de driver.
+
+---
+
+## [05:33] — Deploy Driver App (Flutter web) a Vercel
+**Pedí:** desplegar `/mobile` a Vercel con CLI, usando el `vercel.json` que propusiste (clona Flutter stable en el build, `flutter pub get` + `flutter build web --release`, output `build/web`, sin install command). Pedido explícito: documentar los pasos seguidos.
+
+**Pasos seguidos:**
+1. Creé `mobile/vercel.json` con exactamente la config que diste.
+2. `vercel link --yes --scope badi21s-projects` dentro de `/mobile` — nuevo proyecto Vercel `badi21s-projects/mobile` (separado del proyecto `web`), añadió `.vercel` a `mobile/.gitignore` solo.
+3. `vercel --prod --yes` — subida (~135MB, incluye todo el repo Flutter local salvo lo gitignoreado), build remoto: clona `flutter/flutter` stable depth 1 en `/tmp/flutter`, resuelve deps, compila a JS/wasm-dry-run, `flutter build web --release`. ~3 min total.
+4. Verifiqué con `curl` (200 en `/`) y en Chrome real: LoginScreen renderiza igual que en local, sin errores de consola.
+
+**Cambié:** nada de tu config — la usé literal.
+**Por qué:** no probé login/booking en este dominio de producción — necesitaría añadir esta URL nueva al allow-list de Supabase (igual que con la web dispatcher) antes de que el OAuth funcione ahí. Pendiente que lo hagas si vas a usar esta URL para pruebas reales.
+
+**URL producción Driver App:** https://mobile-ten-khaki.vercel.app
