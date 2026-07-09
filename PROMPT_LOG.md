@@ -75,3 +75,11 @@ Razón backend: Supabase cubre OAuth Google + DB + realtime sin servidor propio.
 **Generó:** nada de código — solo registro el resultado.
 **Cambié:** nada.
 **Por qué:** confirma que `signInWithOAuth` + `redirectTo` + `authGuard` + detección de sesión (`detectSessionInUrl` default) funcionan juntos en producción real, no solo en teoría/build.
+
+---
+
+## [04:46] — Verificación manual: crear request
+**Pedí:** (confirmación) — probaste crear una relocation request desde el panel y salió bien.
+**Generó:** nada de código — registro el resultado.
+**Cambié:** nada.
+**Por qué:** confirma INSERT con `dispatcher_id = user.id`, status `available` por defecto, y refetch vía canal realtime mostrando la tarjeta nueva sin recargar página.
