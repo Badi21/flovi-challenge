@@ -111,3 +111,11 @@ Razón backend: Supabase cubre OAuth Google + DB + realtime sin servidor propio.
 **Generó:** elegí StatefulWidget + `setState` — Riverpod no está instalado y añadirlo solo pa dos listas locales sería una dependencia nueva sin necesidad real (regla: no dependencia nueva si unas líneas bastan). `TabBar`/`TabBarView` con `TabController` en vez de "botón en AppBar" — la spec daba las dos opciones como válidas, tabs dan mejor UX nativa Flutter. Card compartida `_RequestCard` entre ambos tabs (con `onBook` opcional — nulo en My Bookings, así no duplico el layout de tarjeta). Modelos nuevos `RelocationRequest` y `Booking` (`Booking` incluye el `RelocationRequest` anidado del JOIN `bookings.select('id, request_id, relocation_requests(*)')`).
 **Cambié:** nada del pedido explícito — Sign Out no hace `Navigator.push`, solo llama `signOut()`; el `AuthGate` en `main.dart` (stream de `onAuthStateChange`) ya reacciona solo y muestra LoginScreen. My Bookings no lleva realtime propio — la spec solo lo pide para available gigs ("carga desde Supabase al montar" es literal ahí), añadir sync en vivo ahí sería una feature no pedida.
 **Por qué:** `flutter analyze` y `flutter build web` limpios, `flutter test` sigue pasando. El flujo de booking real (con sesión + datos reales en Supabase) no lo puedo probar yo sin loguearme como driver — igual que con el Dashboard, queda pendiente que lo verifiques tú.
+
+---
+
+## [05:25] — Verificación manual: booking real + falso positivo de error
+**Pedí:** (reporte) — viste `flow_state_already_used` en `localhost:3000` al probar login con una segunda cuenta Google.
+**Generó:** antes de tocar código pregunté 3 cosas (a dónde redirigió el login bueno, si hiciste sign out antes, qué hay en el allow-list de Supabase) — no quise parchear a ciegas un error de Auth sin diagnóstico.
+**Cambié:** nada — no era bug. Habías matado el proceso `flutter run` sin darte cuenta a mitad de la prueba; al reintentar limpio, login + reserva de gig + aparición en My Bookings funcionaron.
+**Por qué:** confirma en real: booking flow completo (INSERT `bookings` + UPDATE status + refetch) funciona end-to-end con sesión real de driver.
