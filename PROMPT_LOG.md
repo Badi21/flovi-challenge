@@ -51,3 +51,11 @@ Razón backend: Supabase cubre OAuth Google + DB + realtime sin servidor propio.
 **Generó:** `npm create vite@latest web -- --template vue-ts`, instalé `tailwindcss` + `@tailwindcss/vite`, `@supabase/supabase-js`, `vue-router`. Creé `src/lib/supabase.ts`, `src/router/authGuard.ts` (guard separado, no inline), `src/router/index.ts`, vistas mínimas `LoginView.vue`/`DashboardView.vue`, alias `@` en `vite.config.ts` + `tsconfig.app.json`, `.env.local` con la URL real de Supabase + placeholder de key, `.env.example` sin datos reales.
 **Cambié:** limpié demo scaffold de Vite (HelloWorld, hero.png, vue.svg, CSS de ejemplo) — no pedido pero dejarlo hubiera contradicho "sin componentes UI todavía". `tsconfig.app.json` necesitó `ignoreDeprecations: "6.0"` — TS 6 ya marca `baseUrl` deprecado pero `paths` todavía lo requiere.
 **Por qué:** verifiqué con `vue-tsc -b`, `npm run dev` (curl a localhost) y `npm run build` — los tres limpios antes de entregar.
+
+---
+
+## [04:33] — LoginView.vue completo
+**Pedí:** página de login completa — card centrada, fondo gris claro, título "Flovi Dispatcher" + subtítulo "Vehicle relocation management", botón "Continue with Google" con SVG inline, `signInWithOAuth` con `redirectTo`, manejo de error en rojo, redirect a `/dashboard` si ya hay sesión, TS estricto + Composition API.
+**Generó:** busqué flovi.io primero (paleta navy/blanco, minimalista, alto contraste) pa que el diseño no fuera genérico. Reescribí `LoginView.vue`: `onMounted` chequea sesión y usa `router.replace`, botón con estado `isLoading` (disabled durante OAuth redirect), SVG del logo de Google con los 4 colores oficiales inline, mensaje de error reactivo bajo el botón.
+**Cambié:** nada del pedido — verifiqué contra la key real que confirmaste en `.env.local` (no la vi, solo comprobé que sigue git-ignorada).
+**Por qué:** `vue-tsc -b` limpio, levanté `npm run dev` y revisé en Chrome real (screenshot + consola sin errores) — cliente Supabase inicializa bien con la key real, sin excepciones de env vars.
