@@ -59,3 +59,11 @@ Razón backend: Supabase cubre OAuth Google + DB + realtime sin servidor propio.
 **Generó:** busqué flovi.io primero (paleta navy/blanco, minimalista, alto contraste) pa que el diseño no fuera genérico. Reescribí `LoginView.vue`: `onMounted` chequea sesión y usa `router.replace`, botón con estado `isLoading` (disabled durante OAuth redirect), SVG del logo de Google con los 4 colores oficiales inline, mensaje de error reactivo bajo el botón.
 **Cambié:** nada del pedido — verifiqué contra la key real que confirmaste en `.env.local` (no la vi, solo comprobé que sigue git-ignorada).
 **Por qué:** `vue-tsc -b` limpio, levanté `npm run dev` y revisé en Chrome real (screenshot + consola sin errores) — cliente Supabase inicializa bien con la key real, sin excepciones de env vars.
+
+---
+
+## [04:38] — DashboardView.vue completo
+**Pedí:** dashboard completo — navbar (logo, email, sign out), lista de `relocation_requests` con tarjetas (origin→destination, fecha, notas, badge status), botón "New Request" y "Edit" por tarjeta abriendo el mismo form panel, INSERT/UPDATE con `dispatcher_id = user.id`, carga inicial filtrada por dispatcher, suscripción realtime, sign out + redirect a `/login` si no hay sesión.
+**Generó:** extraje el form a `components/RequestFormPanel.vue` (panel lateral, no inline en Dashboard — form con validación HTML nativa `required`, watch sobre `open`+`editing` pa resetear/precargar campos) y tipos en `types/relocation.ts`. En `DashboardView.vue`: `fetchRequests()` filtra por `dispatcher_id`, canal realtime con filtro `dispatcher_id=eq.${user.id}` que dispara refetch en cualquier evento (INSERT/UPDATE/DELETE), cleanup en `onUnmounted`. Guard de sesión en `onMounted` — sin sesión, redirect a `/login`.
+**Cambié:** nada del pedido explícito. Decisión propia: en vez de mutar el array local tras guardar, dejo que el realtime dispare el refetch — una sola fuente de verdad, evita desincronización entre lo que se guardó y lo que se muestra.
+**Por qué:** `vue-tsc -b` y `npm run build` limpios. Visual real con sesión activa queda pendiente — como dijiste, el testing de login→dashboard lo hacemos después.
